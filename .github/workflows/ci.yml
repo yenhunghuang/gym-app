@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  NPM_CONFIG_AUDIT: false
+  NPM_CONFIG_FUND: false
+  NPM_CONFIG_UPDATE_NOTIFIER: false
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,26 +28,33 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+    - name: Install root dependencies
+      run: npm ci --silent
 
     - name: Install backend dependencies
-      run: cd backend && npm ci
+      working-directory: ./backend
+      run: npm ci --silent
 
     - name: Install frontend dependencies
-      run: cd frontend && npm ci
+      working-directory: ./frontend
+      run: npm ci --silent
 
     - name: Run backend linting
-      run: cd backend && npm run lint
+      working-directory: ./backend
+      run: npm run lint
 
     - name: Run frontend linting
-      run: cd frontend && npm run lint
+      working-directory: ./frontend
+      run: npm run lint
 
     - name: Run backend tests
-      run: cd backend && npm test
+      working-directory: ./backend
+      run: npm test
 
     - name: Run frontend tests
-      run: cd frontend && npm test -- --coverage --watchAll=false
+      working-directory: ./frontend
+      run: npm test -- --coverage --watchAll=false
 
     - name: Build frontend
-      run: cd frontend && npm run build
+      working-directory: ./frontend
+      run: npm run build
