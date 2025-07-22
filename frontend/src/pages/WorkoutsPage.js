@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getWorkouts, createWorkout, deleteWorkout } from '../services/api';
 import UserSelector from '../components/UserSelector';
 import ExerciseList from '../components/ExerciseList';
@@ -22,11 +22,7 @@ const WorkoutsPage = () => {
     weight: ''
   });
 
-  useEffect(() => {
-    fetchWorkouts();
-  }, [selectedUserId, fetchWorkouts]);
-
-  const fetchWorkouts = async () => {
+  const fetchWorkouts = useCallback(async () => {
     try {
       const data = await getWorkouts(selectedUserId || null);
       setWorkouts(data);
@@ -35,7 +31,11 @@ const WorkoutsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedUserId]);
+
+  useEffect(() => {
+    fetchWorkouts();
+  }, [fetchWorkouts]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

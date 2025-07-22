@@ -24,7 +24,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 function initializeSchema() {
-  db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", (err, row) => {
+  db.get('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'users\'', (err, row) => {
     if (err) {
       console.error('Error checking for tables:', err.message);
     } else if (!row) {
