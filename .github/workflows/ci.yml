@@ -28,8 +28,14 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
+    - name: Check Node.js and npm versions
+      run: |
+        node --version
+        npm --version
+        ls -la
+
     - name: Install all dependencies
-      run: npm ci --silent
+      run: npm ci
 
     - name: Run backend linting
       working-directory: ./backend
