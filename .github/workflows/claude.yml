@@ -1,0 +1,103 @@
+name: Claude Code
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  issue_comment:
+    types: [created]
+
+env:
+  NPM_CONFIG_AUDIT: false
+  NPM_CONFIG_FUND: false
+  NPM_CONFIG_UPDATE_NOTIFIER: false
+
+jobs:
+  # Continuous Integration Job
+  ci:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'issue_comment'
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install all dependencies
+      run: npm ci
+
+    - name: Run backend linting
+      working-directory: ./backend
+      run: npm run lint
+
+    - name: Run frontend linting
+      working-directory: ./frontend
+      run: npm run lint
+
+    - name: Run backend tests
+      working-directory: ./backend
+      run: npm test
+
+    - name: Run frontend tests
+      working-directory: ./frontend
+      run: npm test -- --coverage --watchAll=false
+
+    - name: Build frontend
+      working-directory: ./frontend
+      run: npm run build
+
+  # Claude Code Review Job
+  claude-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Claude Code Action
+      uses: anthropics/claude-code-action@v1
+      with:
+        # Authentication - 需要設置 Repository Secret
+        anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+        
+        # 觸發條件設置
+        trigger-on-pr: true
+        trigger-phrase: "@claude"
+        
+        # Code Review 設置
+        auto-review: true
+        review-changed-files-only: true
+        
+        # 自定義 prompt（可選）
+        system-prompt: |
+          你是一個專業的程式碼審查助手，專門審查 GymApp 項目。
+          
+          專案資訊：
+          - 技術棧：Node.js + Express (後端)、React (前端)、SQLite (資料庫)
+          - 程式風格：ESLint + Prettier
+          - 測試：Jest 單元測試 + Supertest API 測試
+          
+          請重點關注：
+          1. 程式碼品質和最佳實踐
+          2. 安全性問題
+          3. 效能優化建議
+          4. TypeScript/JavaScript 慣例
+          5. React Hook 使用規範
+          6. API 設計一致性
+          
+          請用繁體中文回覆，並提供具體的改進建議。
