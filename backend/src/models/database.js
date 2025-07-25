@@ -14,9 +14,9 @@ if (!fs.existsSync(dbDir)) {
 // Initialize database
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
-    console.error('Error opening database:', err.message);
+    console.error('Error opening database:', err.message); // eslint-disable-line no-console
   } else {
-    console.log('Connected to SQLite database at:', dbPath);
+    console.log('Connected to SQLite database at:', dbPath); // eslint-disable-line no-console
     
     // Initialize schema if database is empty
     initializeSchema();
@@ -26,22 +26,22 @@ const db = new sqlite3.Database(dbPath, (err) => {
 function initializeSchema() {
   db.get('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'users\'', (err, row) => {
     if (err) {
-      console.error('Error checking for tables:', err.message);
+      console.error('Error checking for tables:', err.message); // eslint-disable-line no-console
     } else if (!row) {
       // Database is empty, initialize with schema
-      console.log('Initializing database schema...');
+      console.log('Initializing database schema...'); // eslint-disable-line no-console
       
       if (fs.existsSync(schemaPath)) {
         const schema = fs.readFileSync(schemaPath, 'utf8');
         db.exec(schema, (err) => {
           if (err) {
-            console.error('Error initializing schema:', err.message);
+            console.error('Error initializing schema:', err.message); // eslint-disable-line no-console
           } else {
-            console.log('Database schema initialized successfully');
+            console.log('Database schema initialized successfully'); // eslint-disable-line no-console
           }
         });
       } else {
-        console.error('Schema file not found:', schemaPath);
+        console.error('Schema file not found:', schemaPath); // eslint-disable-line no-console
       }
     }
   });

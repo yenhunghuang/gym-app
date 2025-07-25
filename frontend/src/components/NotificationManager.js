@@ -85,7 +85,7 @@ const NotificationManager = () => {
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlB64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY || 'YOUR_VAPID_PUBLIC_KEY')
+        applicationServerKey: urlB64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY || 'YOUR_VAPID_PUBLIC_KEY') // eslint-disable-line no-undef
       });
 
       setSubscription(subscription);
@@ -274,7 +274,7 @@ const NotificationManager = () => {
       )}
 
       {/* 通知控制面板（開發用） */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === 'development' && ( // eslint-disable-line no-undef
         <div className="notification-debug-panel">
           <div className="debug-panel-header">
             <h4>通知調試面板</h4>
