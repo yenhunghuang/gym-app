@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getUsers, getExercises, getWorkouts } from '../services/api';
+import StatsDashboard from '../components/StatsDashboard';
+import AchievementSystem from '../components/AchievementSystem';
 
 const HomePage = () => {
   const [stats, setStats] = useState({
@@ -46,6 +48,7 @@ const HomePage = () => {
         <p>記錄你的健身訓練，追蹤你的進步</p>
       </div>
 
+      {/* 基本統計概覽 */}
       <div className="stats">
         <div className="stat-card">
           <h3>{stats.totalUsers}</h3>
@@ -60,6 +63,12 @@ const HomePage = () => {
           <p>訓練紀錄</p>
         </div>
       </div>
+
+      {/* 詳細統計面板 */}
+      <StatsDashboard />
+
+      {/* 成就系統 */}
+      <AchievementSystem />
 
       {stats.recentWorkouts.length > 0 && (
         <div className="card">
