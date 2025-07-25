@@ -3,18 +3,24 @@ import React, { useState, useEffect } from 'react';
 const ProgressChart = ({ data, type = 'weight', title = '進度圖表', height = '300px' }) => {
   const [chartData, setChartData] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('30'); // 30天、90天、365天
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+  const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, data: null });
 
   useEffect(() => {
     if (data && data.length > 0) {
       processChartData(data);
+    } else {
+      setChartData([]);
     }
-  }, [data, selectedPeriod]);
+  }, [data, selectedPeriod, type]);
 
   const processChartData = (rawData) => {
     const days = parseInt(selectedPeriod);
     const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999); // 設置為一天的結束
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0); // 設置為一天的開始
 
     // 過濾並處理數據
     const filteredData = rawData.filter(item => {
@@ -45,9 +51,12 @@ const ProgressChart = ({ data, type = 'weight', title = '進度圖表', height =
       if (type === 'weight') {
         // 計算當日總重量
         value = dayData.reduce((sum, workout) => {
-          if (workout.exercises) {
+          if (workout.exercises && Array.isArray(workout.exercises)) {
             return sum + workout.exercises.reduce((exerciseSum, exercise) => {
-              return exerciseSum + (exercise.weight * exercise.sets * exercise.reps || 0);
+              const weight = parseFloat(exercise.weight) || 0;
+              const sets = parseInt(exercise.sets) || 0;
+              const reps = parseInt(exercise.reps) || 0;
+              return exerciseSum + (weight * sets * reps);
             }, 0);
           }
           return sum;
@@ -58,7 +67,7 @@ const ProgressChart = ({ data, type = 'weight', title = '進度圖表', height =
       } else if (type === 'exercises') {
         // 計算當日動作總數
         value = dayData.reduce((sum, workout) => {
-          return sum + (workout.exercises ? workout.exercises.length : 0);
+          return sum + (workout.exercises && Array.isArray(workout.exercises) ? workout.exercises.length : 0);
         }, 0);
       }
 
@@ -85,7 +94,17 @@ const ProgressChart = ({ data, type = 'weight', title = '進度圖表', height =
 
   const getYAxisLabels = () => {
     const max = getMaxValue();
-    const step = Math.ceil(max / 5);
+    if (max === 0) return [0];
+    
+    let step;
+    if (max <= 10) {
+      step = Math.ceil(max / 5);
+    } else if (max <= 100) {
+      step = Math.ceil(max / 10) * 2;
+    } else {
+      step = Math.ceil(max / 100) * 20;
+    }
+    
     const labels = [];
     for (let i = 0; i <= 5; i++) {
       labels.push(i * step);
@@ -93,15 +112,16 @@ const ProgressChart = ({ data, type = 'weight', title = '進度圖表', height =
     return labels.reverse();
   };
 
-  const formatValue = (value) => {
+  const formatValue = (value, showUnit = true) => {
+    const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
     if (type === 'weight') {
-      return `${value.toFixed(0)}kg`;
+      return showUnit ? `${numValue.toFixed(0)}kg` : numValue.toFixed(0);
     } else if (type === 'workouts') {
-      return `${value}次`;
+      return showUnit ? `${numValue}次` : numValue.toString();
     } else if (type === 'exercises') {
-      return `${value}個`;
+      return showUnit ? `${numValue}個` : numValue.toString();
     }
-    return value.toString();
+    return numValue.toString();
   };
 
   const getColor = () => {
@@ -232,19 +252,34 @@ const ProgressChart = ({ data, type = 'weight', title = '進度圖表', height =
             {/* 數據點 */}
             {chartData.map((point, index) => {
               const maxValue = getMaxValue();
-              const x = 5 + (index / (chartData.length - 1)) * 90;
-              const y = 95 - (point.value / maxValue) * 90;
+              const x = 5 + (index / Math.max(chartData.length - 1, 1)) * 90;
+              const y = maxValue > 0 ? 95 - (point.value / maxValue) * 90 : 95;
               
               return (
                 <circle
                   key={index}
                   cx={x}
                   cy={y}
-                  r="2"
+                  r={hoveredPoint === index ? '4' : '3'}
                   fill={getColor()}
                   className="chart-point"
                   data-value={point.value}
                   data-date={point.label}
+                  onMouseEnter={(e) => {
+                    setHoveredPoint(index);
+                    const rect = e.target.closest('svg').getBoundingClientRect();
+                    setTooltip({
+                      show: true,
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top - 10,
+                      data: point
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredPoint(null);
+                    setTooltip({ show: false, x: 0, y: 0, data: null });
+                  }}
+                  style={{ cursor: 'pointer' }}
                 />
               );
             })}
@@ -253,17 +288,58 @@ const ProgressChart = ({ data, type = 'weight', title = '進度圖表', height =
           {/* X軸標籤 */}
           <div className="chart-x-axis">
             {chartData.map((point, index) => {
-              // 只顯示部分標籤以避免擁擠
-              const shouldShow = index % Math.ceil(chartData.length / 5) === 0 || index === chartData.length - 1;
+              // 根據時間範圍調整標籤顯示
+              let shouldShow = false;
+              const totalPoints = chartData.length;
+              
+              if (selectedPeriod === '7') {
+                shouldShow = true; // 7天顯示所有標籤
+              } else if (selectedPeriod === '30') {
+                shouldShow = index % Math.ceil(totalPoints / 6) === 0 || index === totalPoints - 1;
+              } else {
+                shouldShow = index % Math.ceil(totalPoints / 5) === 0 || index === totalPoints - 1;
+              }
+              
               return shouldShow ? (
                 <div key={index} className="x-axis-label" style={{
-                  left: `${5 + (index / (chartData.length - 1)) * 90}%`
+                  left: `${5 + (index / Math.max(chartData.length - 1, 1)) * 90}%`
                 }}>
                   {point.label}
                 </div>
               ) : null;
             })}
           </div>
+          
+          {/* 工具提示 */}
+          {tooltip.show && tooltip.data && (
+            <div 
+              className="chart-tooltip"
+              style={{
+                position: 'absolute',
+                left: tooltip.x,
+                top: tooltip.y,
+                transform: 'translateX(-50%)',
+                background: 'rgba(0, 0, 0, 0.8)',
+                color: 'white',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+                zIndex: 1000
+              }}
+            >
+              <div>{tooltip.data.label}</div>
+              <div style={{ fontWeight: 'bold' }}>
+                {formatValue(tooltip.data.value)}
+              </div>
+              {tooltip.data.workouts > 0 && (
+                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                  {tooltip.data.workouts}次訓練
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -276,7 +352,7 @@ const ProgressChart = ({ data, type = 'weight', title = '進度圖表', height =
         <div className="summary-item">
           <span className="summary-label">平均值</span>
           <span className="summary-value">
-            {formatValue(chartData.reduce((sum, p) => sum + p.value, 0) / chartData.length)}
+            {chartData.length > 0 ? formatValue(chartData.reduce((sum, p) => sum + p.value, 0) / chartData.length) : formatValue(0)}
           </span>
         </div>
         <div className="summary-item">

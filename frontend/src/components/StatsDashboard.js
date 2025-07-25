@@ -33,21 +33,12 @@ const StatsDashboard = () => {
       const userId = selectedUser === 'all' ? null : selectedUser;
       const workouts = await getWorkouts(userId);
       
-      // 為每個訓練獲取詳細信息
-      const detailedWorkouts = await Promise.all(
-        workouts.map(async (workout) => {
-          try {
-            // 這裡應該調用詳細的API，但目前使用現有數據結構
-            return {
-              ...workout,
-              exercises: workout.exercises || []
-            };
-          } catch (err) {
-            console.error('Error fetching workout details:', err);
-            return { ...workout, exercises: [] };
-          }
-        })
-      );
+      // 處理訓練數據，確保 exercises 是陣列
+      const detailedWorkouts = workouts.map(workout => ({
+        ...workout,
+        exercises: Array.isArray(workout.exercises) ? workout.exercises : [],
+        date: workout.date // 確保日期格式正確
+      }));
       
       setWorkoutData(detailedWorkouts);
       calculateStats(detailedWorkouts);
@@ -79,9 +70,12 @@ const StatsDashboard = () => {
     const dayCount = {};
 
     workouts.forEach(workout => {
-      if (workout.exercises) {
+      if (Array.isArray(workout.exercises)) {
         workout.exercises.forEach(exercise => {
-          totalWeight += (exercise.weight || 0) * (exercise.sets || 0) * (exercise.reps || 0);
+          const weight = parseFloat(exercise.weight) || 0;
+          const sets = parseInt(exercise.sets) || 0;
+          const reps = parseInt(exercise.reps) || 0;
+          totalWeight += weight * sets * reps;
           totalExercises += 1;
         });
       }
@@ -95,31 +89,34 @@ const StatsDashboard = () => {
     });
 
     // 找出最活躍的日子
-    const mostActiveDay = Object.keys(dayCount).reduce((a, b) => 
-      dayCount[a] > dayCount[b] ? a : b, '週一'
-    );
+    const mostActiveDay = Object.keys(dayCount).length > 0 
+      ? Object.keys(dayCount).reduce((a, b) => dayCount[a] > dayCount[b] ? a : b, '週一')
+      : '無數據';
 
     // 計算連續訓練天數
-    const sortedDates = workouts
-      .map(w => new Date(w.date))
+    const uniqueDates = [...new Set(workouts.map(w => w.date))]
+      .map(date => new Date(date))
+      .filter(date => !isNaN(date.getTime()))
       .sort((a, b) => b - a); // 降序排列
 
     let streak = 0;
-    let currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0);
-
-    for (let i = 0; i < sortedDates.length; i++) {
-      const workoutDate = new Date(sortedDates[i]);
-      workoutDate.setHours(0, 0, 0, 0);
+    if (uniqueDates.length > 0) {
+      let currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
       
-      const diffDays = Math.floor((currentDate - workoutDate) / (1000 * 60 * 60 * 24));
-      
-      if (diffDays === streak || (streak === 0 && diffDays <= 1)) {
-        streak = diffDays + 1;
-        currentDate = new Date(workoutDate);
-        currentDate.setDate(currentDate.getDate() - 1);
-      } else {
-        break;
+      for (let i = 0; i < uniqueDates.length; i++) {
+        const workoutDate = new Date(uniqueDates[i]);
+        workoutDate.setHours(0, 0, 0, 0);
+        
+        const diffDays = Math.floor((currentDate - workoutDate) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === streak || (streak === 0 && diffDays <= 1)) {
+          streak = diffDays + 1;
+          currentDate = new Date(workoutDate);
+          currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+          break;
+        }
       }
     }
 

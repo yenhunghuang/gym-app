@@ -1011,6 +1011,7 @@ html {
 
 .chart-point:hover {
   r: 4;
+  filter: brightness(1.1);
 }
 
 .chart-x-axis {
@@ -1061,6 +1062,39 @@ html {
   color: #6c757d;
   background: #f8f9fa;
   border-radius: 8px;
+}
+
+/* Chart tooltip styles */
+.chart-tooltip {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Enhanced chart animations */
+.chart-point {
+  transition: all 0.2s ease;
+}
+
+.chart-point:hover {
+  r: 4;
+  filter: brightness(1.1) drop-shadow(0 0 3px rgba(0, 123, 255, 0.5));
+}
+
+/* Improved period selector */
+.period-btn {
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+}
+
+.period-btn:hover {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+  transform: translateY(-1px);
+}
+
+.period-btn.active {
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.25);
 }
 
 /* Mobile chart optimizations */
