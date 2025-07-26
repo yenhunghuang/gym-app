@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useIsMobile } from '../hooks/useDeviceDetection';
 
 const FloatingActionButton = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 只在特定頁面顯示FAB
-  const shouldShowFAB = ['/workouts', '/', '/users', '/exercises'].includes(location.pathname);
+  // 只在特定頁面和移動設備顯示FAB
+  const shouldShowFAB = ['/workouts', '/', '/users', '/exercises'].includes(location.pathname) && isMobile;
 
   if (!shouldShowFAB) return null;
 

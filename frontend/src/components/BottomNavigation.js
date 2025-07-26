@@ -1,8 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useIsMobile } from '../hooks/useDeviceDetection';
 
 const BottomNavigation = () => {
   const location = useLocation();
+  const isMobile = useIsMobile();
+
+  // Don't render on desktop
+  if (!isMobile) {
+    return null;
+  }
 
   const isActive = (path) => {
     return location.pathname === path;

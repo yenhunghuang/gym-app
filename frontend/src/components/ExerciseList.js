@@ -22,7 +22,7 @@ const ExerciseList = ({ selectedExerciseId, onExerciseSelect }) => {
     }
   };
 
-  const categories = [...new Set(exercises.map(ex => ex.category).filter(Boolean))];
+  const categories = [...new Set(exercises.map(ex => ex.category).filter(Boolean))].sort();
   const filteredExercises = selectedCategory 
     ? exercises.filter(ex => ex.category === selectedCategory)
     : exercises;
@@ -41,7 +41,7 @@ const ExerciseList = ({ selectedExerciseId, onExerciseSelect }) => {
           <option value="">所有類別</option>
           {categories.map(category => (
             <option key={category} value={category}>
-              {category}
+              {category} ({exercises.filter(ex => ex.category === category).length})
             </option>
           ))}
         </select>

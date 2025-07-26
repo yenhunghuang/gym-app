@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { useIsMobile } from '../hooks/useDeviceDetection';
 
 const SwipeGestures = ({ onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onPullToRefresh, children, className = '' }) => {
+  const isMobile = useIsMobile();
   const elementRef = useRef(null);
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
   const touchMoveRef = useRef({ x: 0, y: 0 });
@@ -13,7 +15,7 @@ const SwipeGestures = ({ onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onPu
 
   useEffect(() => {
     const element = elementRef.current;
-    if (!element) return;
+    if (!element || !isMobile) return; // Only enable gestures on mobile
 
     let isScrollAtTop = true;
 
@@ -156,7 +158,7 @@ const SwipeGestures = ({ onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onPu
       element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onPullToRefresh]);
+  }, [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onPullToRefresh, isMobile]);
 
   return (
     <div 
@@ -164,8 +166,8 @@ const SwipeGestures = ({ onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onPu
       className={`swipe-container ${className}`}
       style={{ position: 'relative', overflow: 'auto', height: '100%' }}
     >
-      {/* 下拉刷新指示器 */}
-      {onPullToRefresh && (
+      {/* 下拉刷新指示器 - 只在移動設備顯示 */}
+      {onPullToRefresh && isMobile && (
         <div 
           ref={pullIndicatorRef}
           className="pull-indicator"
@@ -203,12 +205,12 @@ export const SwipeToDelete = ({ onDelete, children, deleteText = '刪除', class
   const touchStartRef = useRef({ x: 0, y: 0 });
   const currentTranslateRef = useRef(0);
   const deleteActionRef = useRef(null);
-
+  const isMobile = useIsMobile();
   const SWIPE_DELETE_THRESHOLD = 80;
 
   useEffect(() => {
     const element = itemRef.current;
-    if (!element) return;
+    if (!element || !isMobile) return; // Only enable swipe to delete on mobile
 
     const handleTouchStart = (e) => {
       const touch = e.touches[0];
@@ -280,7 +282,7 @@ export const SwipeToDelete = ({ onDelete, children, deleteText = '刪除', class
       element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [onDelete]);
+  }, [onDelete, isMobile]);
 
   return (
     <div className={`swipe-delete-container ${className}`} style={{ position: 'relative', overflow: 'hidden' }}>
@@ -297,29 +299,31 @@ export const SwipeToDelete = ({ onDelete, children, deleteText = '刪除', class
         {children}
       </div>
       
-      {/* 刪除按鈕 */}
-      <div 
-        ref={deleteActionRef}
-        className="delete-action"
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: '120px',
-          background: '#dc3545',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontWeight: 'bold',
-          opacity: 0,
-          zIndex: 1,
-          transition: 'background-color 0.3s ease'
-        }}
-      >
-        🗑️ {deleteText}
-      </div>
+      {/* 刪除按鈕 - 只在移動設備顯示 */}
+      {isMobile && (
+        <div 
+          ref={deleteActionRef}
+          className="delete-action"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: '120px',
+            background: '#dc3545',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: 'bold',
+            opacity: 0,
+            zIndex: 1,
+            transition: 'background-color 0.3s ease'
+          }}
+        >
+          🗑️ {deleteText}
+        </div>
+      )}
     </div>
   );
 };

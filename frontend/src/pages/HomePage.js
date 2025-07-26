@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers, getExercises, getWorkouts } from '../services/api';
+import { getUsers, getExercises, getWorkoutsBasic } from '../services/api';
 import StatsDashboard from '../components/StatsDashboard';
 import AchievementSystem from '../components/AchievementSystem';
 
@@ -21,7 +21,7 @@ const HomePage = () => {
       const [users, exercises, workouts] = await Promise.all([
         getUsers(),
         getExercises(),
-        getWorkouts()
+        getWorkoutsBasic()
       ]);
 
       setStats({

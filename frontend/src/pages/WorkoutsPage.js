@@ -4,6 +4,7 @@ import { getWorkouts, createWorkout, deleteWorkout } from '../services/api';
 import UserSelector from '../components/UserSelector';
 import ExerciseList from '../components/ExerciseList';
 import SwipeGestures, { SwipeToDelete } from '../components/SwipeGestures';
+import { useIsMobile } from '../hooks/useDeviceDetection';
 
 const WorkoutsPage = () => {
   const [workouts, setWorkouts] = useState([]);
@@ -11,6 +12,7 @@ const WorkoutsPage = () => {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState('all');
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     user_id: '',
     date: new Date().toISOString().split('T')[0],
@@ -169,13 +171,8 @@ const WorkoutsPage = () => {
             <p>目前沒有訓練紀錄</p>
           ) : (
             <div className="grid">
-              {workouts.map(workout => (
-                <SwipeToDelete
-                  key={workout.id}
-                  onDelete={() => handleDelete(workout.id)}
-                  deleteText="刪除"
-                  className="workout-item-with-gestures"
-                >
+              {workouts.map(workout => {
+                const workoutContent = (
                   <div className="workout-item card">
                     <Link 
                       to={`/workouts/${workout.id}`} 
@@ -201,8 +198,24 @@ const WorkoutsPage = () => {
                       </button>
                     </div>
                   </div>
-                </SwipeToDelete>
-              ))}
+                );
+
+                // Conditionally wrap with SwipeToDelete on mobile
+                return isMobile ? (
+                  <SwipeToDelete
+                    key={workout.id}
+                    onDelete={() => handleDelete(workout.id)}
+                    deleteText="刪除"
+                    className="workout-item-with-gestures"
+                  >
+                    {workoutContent}
+                  </SwipeToDelete>
+                ) : (
+                  <div key={workout.id}>
+                    {workoutContent}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

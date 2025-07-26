@@ -1,8 +1,8 @@
 const db = require('./database');
 
 class Workout {
-  static getAll() {
-    return new Promise((resolve, reject) => {
+  static async getAll() {
+    const workouts = await new Promise((resolve, reject) => {
       const query = `
         SELECT w.*, u.name as user_name 
         FROM workouts w 
@@ -17,6 +17,16 @@ class Workout {
         }
       });
     });
+
+    // 為每個 workout 獲取 exercises 數據
+    const workoutsWithExercises = await Promise.all(
+      workouts.map(async (workout) => {
+        const exercises = await this.getWorkoutExercises(workout.id);
+        return { ...workout, exercises };
+      })
+    );
+
+    return workoutsWithExercises;
   }
 
   static getById(id) {
@@ -37,8 +47,8 @@ class Workout {
     });
   }
 
-  static getByUserId(userId) {
-    return new Promise((resolve, reject) => {
+  static async getByUserId(userId) {
+    const workouts = await new Promise((resolve, reject) => {
       const query = `
         SELECT w.*, u.name as user_name 
         FROM workouts w 
@@ -54,6 +64,16 @@ class Workout {
         }
       });
     });
+
+    // 為每個 workout 獲取 exercises 數據
+    const workoutsWithExercises = await Promise.all(
+      workouts.map(async (workout) => {
+        const exercises = await this.getWorkoutExercises(workout.id);
+        return { ...workout, exercises };
+      })
+    );
+
+    return workoutsWithExercises;
   }
 
   static getWorkoutExercises(workoutId) {
@@ -122,6 +142,24 @@ class Workout {
           }
         }
       );
+    });
+  }
+
+  static getAllBasic() {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT w.*, u.name as user_name 
+        FROM workouts w 
+        LEFT JOIN users u ON w.user_id = u.id 
+        ORDER BY w.date DESC
+      `;
+      db.all(query, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
     });
   }
 

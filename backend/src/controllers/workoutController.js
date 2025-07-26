@@ -4,10 +4,13 @@ const workoutController = {
   // GET /api/workouts
   getAllWorkouts: async (req, res) => {
     try {
-      const { user_id } = req.query;
+      const { user_id, basic } = req.query;
       let workouts;
       
-      if (user_id) {
+      if (basic === 'true') {
+        // 為HomePage提供基本統計，不包含exercises數據
+        workouts = await Workout.getAllBasic();
+      } else if (user_id) {
         workouts = await Workout.getByUserId(user_id);
       } else {
         workouts = await Workout.getAll();

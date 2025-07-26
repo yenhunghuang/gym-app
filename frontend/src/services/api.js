@@ -60,6 +60,11 @@ export const getWorkouts = async (userId = null) => {
   return response.data;
 };
 
+export const getWorkoutsBasic = async () => {
+  const response = await api.get('/workouts?basic=true');
+  return response.data;
+};
+
 export const getWorkout = async (id) => {
   const response = await api.get(`/workouts/${id}`);
   return response.data;
