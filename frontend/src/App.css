@@ -134,9 +134,10 @@
   color: #fbc02d;
 }
 
-.badge-Back, .badge-Chest, .badge-Legs, .badge-Shoulders {
-  background-color: #f5f5f5;
-  color: #666;
+/* 舊版英文類別樣式已移除，統一使用繁體中文 */
+.badge-有氧 {
+  background-color: #e1f5fe;
+  color: #0277bd;
 }
 
 .exercise-description {

@@ -46,9 +46,9 @@ INSERT INTO users (name, email) VALUES
 ('Jane Smith', 'jane@example.com');
 
 INSERT INTO exercises (name, category, description) VALUES 
-('Bench Press', 'Chest', 'Chest press exercise using barbell'),
-('Squat', 'Legs', 'Lower body exercise targeting quadriceps and glutes'),
-('Deadlift', 'Back', 'Full body exercise focusing on posterior chain'),
-('Pull-ups', 'Back', 'Upper body pulling exercise'),
-('Push-ups', 'Chest', 'Bodyweight chest exercise'),
-('Shoulder Press', 'Shoulders', 'Overhead pressing movement for shoulders');
+('臥推', '胸部', '使用槓鈴進行的胸部訓練動作'),
+('深蹲', '腿部', '主要訓練股四頭肌和臀肌的下肢運動'),
+('硬舉', '背部', '訓練後鏈肌群的全身性動作'),
+('引體向上', '背部', '上肢拉動動作'),
+('伏地挺身', '胸部', '自體重量胸部訓練動作'),
+('肩上推舉', '肩部', '肩部上推動作，訓練三角肌');
